@@ -64,7 +64,7 @@ body{font-family:'DM Sans',sans-serif;background:#ECE5DD;height:100dvh;display:f
 .success-close{background:#c8962a;color:#1a1208;border:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif}
 /* Product Card */
 .product-card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.13);max-width:82%;align-self:flex-start;margin-bottom:2px}
-.pcard-banner{position:relative;height:110px;display:flex;align-items:center;justify-content:center}
+.pcard-banner{display:none}
 .pcard-emoji{font-size:56px;line-height:1}
 .pcard-badge{position:absolute;top:10px;left:10px;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.4px;text-transform:uppercase}
 .pcard-discount{position:absolute;top:10px;right:10px;background:#e74c3c;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px}
@@ -76,35 +76,14 @@ body{font-family:'DM Sans',sans-serif;background:#ECE5DD;height:100dvh;display:f
 .pcard-moq-pill{font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;margin-left:auto}
 .pcard-footer{font-size:11px;color:#8a7055;border-top:1px solid #f0e8d5;padding-top:6px}
 .pcard-time{font-size:10px;color:#aaa;text-align:right;padding:0 14px 8px}
-/* Product Detail Modal */
-.pdetail-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:150;align-items:flex-end;justify-content:center}
-.pdetail-overlay.open{display:flex}
-.pdetail-sheet{background:#fdf6e9;border-radius:20px 20px 0 0;width:100%;max-width:520px;max-height:88dvh;overflow-y:auto;padding:0 0 28px}
-.pdetail-hero{position:relative;height:160px;display:flex;align-items:center;justify-content:center;font-size:80px;border-radius:20px 20px 0 0}
-.pdetail-close{position:absolute;top:12px;right:14px;background:rgba(0,0,0,0.35);color:#fff;border:none;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.pdetail-body{padding:16px 18px 0}
-.pdetail-cat{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
-.pdetail-name{font-family:'Playfair Display',serif;font-size:20px;color:#1a1208;line-height:1.3;margin-bottom:12px}
-.pdetail-price-row{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}
-.pdetail-price{font-size:28px;font-weight:800}
-.pdetail-mrp{font-size:15px;color:#bbb;text-decoration:line-through}
-.pdetail-off{background:#e74c3c;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:12px}
-.pdetail-divider{border:none;border-top:1px solid #f0e8d5;margin:14px 0}
-.pdetail-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f5ede0;font-size:13.5px}
-.pdetail-row:last-of-type{border-bottom:none}
-.pdetail-label{color:#8a7055;font-weight:600}
-.pdetail-val{color:#1a1208;font-weight:700;text-align:right}
-.pdetail-note{background:#fffbf3;border-radius:10px;padding:10px 13px;font-size:12px;color:#8a7055;line-height:1.7;margin:14px 0}
-.pdetail-add-btn{width:100%;background:#c8962a;color:#1a1208;border:none;padding:14px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:4px}
-.pdetail-add-btn:active{background:#b5821e}
 /* Product Grid */
 .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-self:flex-start;max-width:92%;margin-bottom:2px}
 .pgrid-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.12);cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;border:2px solid transparent}
 .pgrid-card:active{transform:scale(0.97);box-shadow:0 1px 4px rgba(0,0,0,0.15)}
 .pgrid-card:hover{border-color:#c8962a}
-.pgrid-banner{height:80px;display:flex;align-items:center;justify-content:center;font-size:36px;position:relative}
+.pgrid-banner{display:none}
 .pgrid-badge{position:absolute;top:5px;right:5px;font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px;color:#fff}
-.pgrid-info{padding:7px 8px 8px}
+.pgrid-info{padding:10px 8px 8px}
 .pgrid-name{font-size:11.5px;font-weight:600;color:#1a1208;line-height:1.3;margin-bottom:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .pgrid-price{font-size:13px;font-weight:800;color:#c8962a}
 .pgrid-mrp{font-size:10px;color:#bbb;text-decoration:line-through;margin-left:4px}
@@ -186,35 +165,6 @@ body{font-family:'DM Sans',sans-serif;background:#ECE5DD;height:100dvh;display:f
     <h3>Order Placed!</h3>
     <p id="successMsg">Your order has been received. We will send you the delivery charges via WhatsApp shortly. Thank you!</p>
     <button class="success-close" onclick="closeSuccess()">Continue Shopping</button>
-  </div>
-</div>
-
-<!-- Product Detail Modal -->
-<div class="pdetail-overlay" id="pdetailOverlay">
-  <div class="pdetail-sheet">
-    <div class="pdetail-hero" id="pdetailHero">
-      <div id="pdetailEmoji" style="font-size:80px"></div>
-      <button class="pdetail-close" onclick="closePdetail()">✕</button>
-      <div id="pdetailBadge" style="position:absolute;top:14px;left:14px;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;color:#fff;letter-spacing:.5px;text-transform:uppercase"></div>
-      <div id="pdetailDiscount" style="position:absolute;top:14px;right:50px;background:#e74c3c;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px"></div>
-    </div>
-    <div class="pdetail-body">
-      <div class="pdetail-cat" id="pdetailCat"></div>
-      <div class="pdetail-name" id="pdetailName"></div>
-      <div class="pdetail-price-row">
-        <span class="pdetail-price" id="pdetailPrice"></span>
-        <span class="pdetail-mrp" id="pdetailMrp"></span>
-        <span class="pdetail-off" id="pdetailOff"></span>
-      </div>
-      <hr class="pdetail-divider">
-      <div class="pdetail-row"><span class="pdetail-label">📦 Min. Order Qty</span><span class="pdetail-val" id="pdetailMoq"></span></div>
-      <div class="pdetail-row"><span class="pdetail-label">💰 Min. Order Value</span><span class="pdetail-val" id="pdetailMinVal"></span></div>
-      <div class="pdetail-row" id="pdetailCodeRow"><span class="pdetail-label">🔖 Product Code</span><span class="pdetail-val" id="pdetailCode"></span></div>
-      <div class="pdetail-row"><span class="pdetail-label">✅ Stock Status</span><span class="pdetail-val" id="pdetailStock"></span></div>
-      <div class="pdetail-note">🚚 Tamil Nadu delivery only &nbsp;·&nbsp; 📦 Bulk carton packing<br>📸 Delivery charges updated after payment via WhatsApp</div>
-      <button class="pdetail-add-btn" id="pdetailAddBtn">🛒 Add to Cart</button>
-      <div class="cancel-lnk" onclick="closePdetail()" style="margin-top:12px">Close</div>
-    </div>
   </div>
 </div>
 
@@ -373,7 +323,22 @@ function handleChip(o){
   else if(o.action==='home')    goHome();
   else if(o.action==='opencart') openOrder();
   else if(o.action==='qty')     handleQty(o.pid, o.qty);
-  else if(o.action==='viewimg'){ openPdetail(o.val); }
+  else if(o.action==='viewimg'){ 
+    const p = o.val;
+    const productLink = 'https://shrimalatraders.github.io/shrimalatraders/#product=' + p.id;
+    showTyping(() => {
+      const d = document.createElement('div');
+      d.className = 'msg bot';
+      d.innerHTML =
+        '🖼️ <b>' + p.name + '</b><br><br>' +
+        '<a href="' + productLink + '" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:#c8962a;color:#fff;padding:10px 18px;border-radius:22px;text-decoration:none;font-weight:700;font-size:13px">🔗 View Product on Website</a>' +
+        '<div style="font-size:11px;color:#8a7055;margin-top:8px">Tap to see full product images & details</div>' +
+        '<div class="msg-time">' + now() + '</div>';
+      chatArea.appendChild(d);
+      chatArea.scrollTop = chatArea.scrollHeight;
+      setChips([{label:'🛒 Add to Cart', action:'addcart', val:p},{label:'🏠 Main Menu', action:'home'}]);
+    });
+  }
 }
 
 const PAGE_SIZE = 8;
@@ -382,7 +347,7 @@ function showCategory(cat, page=0){
   const items = PRODUCTS.filter(p => p.cat === cat);
   const slice = items.slice(page*PAGE_SIZE, (page+1)*PAGE_SIZE);
   showTyping(() => {
-    addMsg('📦 *' + cat + ' Products* (' + items.length + ' items)\n\nTap a product to see details & add to cart:', 'bot');
+    addMsg('📦 *' + cat + ' Products* (' + items.length + ' items)\n\nTap a product to see details & add to cart: <a href="https://shrimalatraders.github.io/shrimalatraders/#cat=' + encodeURIComponent(cat) + '" target="_blank" style="display:inline-block;background:#1a1208;color:#e8b84b;padding:4px 12px;border-radius:14px;text-decoration:none;font-size:12px;font-weight:600">🌐 View on Website ›</a>', 'bot');
     // Build visual grid
     const grid = document.createElement('div');
     grid.className = 'pgrid';
@@ -445,6 +410,7 @@ function showProduct(p){
     addMsg(txt, 'bot');
     setChips([
       {label:'🛒 Add to Cart', action:'addcart', val:p},
+      {label:'📷 View Images', action:'viewimg', val:p},
       {label:'⬅ Back to ' + p.cat, action:'cat', val:p.cat},
       {label:'🏠 Main Menu', action:'home'},
     ]);
@@ -619,8 +585,22 @@ function sendText(){
   if(imageWords.some(w => vl.includes(w))){
     const p = currentProduct || window_pendingProduct;
     if(p){
-      const productLink = 'https://shrimalatraders.github.io/shrimalatraders/?product=' + p.id;
-      window.open(productLink, '_blank');
+      const productLink = 'https://shrimalatraders.github.io/shrimalatraders/#product=' + p.id;
+      showTyping(() => {
+        const d = document.createElement('div');
+        d.className = 'msg bot';
+        d.innerHTML =
+          '🖼️ <b>' + p.name + '</b><br><br>' +
+          '<a href="' + productLink + '" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:#c8962a;color:#fff;padding:10px 18px;border-radius:22px;text-decoration:none;font-weight:700;font-size:13px">🔗 View Product on Website</a>' +
+          '<div style="font-size:11px;color:#8a7055;margin-top:8px">Tap to see full product images & details</div>' +
+          '<div class="msg-time">' + now() + '</div>';
+        chatArea.appendChild(d);
+        chatArea.scrollTop = chatArea.scrollHeight;
+        setChips([
+          {label:'🛒 Add to Cart', action:'addcart', val:p},
+          {label:'🏠 Main Menu', action:'home'},
+        ]);
+      });
     } else {
       botReply('Please select a product first to view its images 😊', [
         {label:'🍽️ Trays', action:'cat', val:'Tray'},
@@ -786,43 +766,6 @@ async function confirmOrder(){
 function closeSuccess(){
   document.getElementById('successOverlay').classList.remove('open');
   goHome();
-}
-
-// ── PRODUCT DETAIL MODAL ──
-function openPdetail(p){
-  const {emoji, color, accent, label} = getProductEmoji(p);
-  const discount = Math.round(((p.mrp - p.price) / p.mrp) * 100);
-  const minVal = (p.price * p.moq).toFixed(0);
-
-  document.getElementById('pdetailHero').style.background = color;
-  document.getElementById('pdetailHero').style.borderBottom = '2px solid ' + accent + '40';
-  document.getElementById('pdetailEmoji').textContent = emoji;
-  document.getElementById('pdetailBadge').textContent = label;
-  document.getElementById('pdetailBadge').style.background = accent;
-  document.getElementById('pdetailDiscount').textContent = discount > 0 ? '-' + discount + '% OFF' : '';
-  document.getElementById('pdetailDiscount').style.display = discount > 0 ? 'block' : 'none';
-  document.getElementById('pdetailCat').textContent = p.cat;
-  document.getElementById('pdetailCat').style.color = accent;
-  document.getElementById('pdetailName').textContent = p.name;
-  document.getElementById('pdetailPrice').textContent = '₹' + p.price + ' /pc';
-  document.getElementById('pdetailPrice').style.color = accent;
-  document.getElementById('pdetailMrp').textContent = '₹' + p.mrp;
-  document.getElementById('pdetailOff').textContent = discount > 0 ? discount + '% off' : '';
-  document.getElementById('pdetailOff').style.display = discount > 0 ? 'inline-block' : 'none';
-  document.getElementById('pdetailMoq').textContent = p.moq + ' pcs minimum';
-  document.getElementById('pdetailMinVal').textContent = '₹' + minVal;
-  if(p.code){
-    document.getElementById('pdetailCode').textContent = p.code;
-    document.getElementById('pdetailCodeRow').style.display = 'flex';
-  } else {
-    document.getElementById('pdetailCodeRow').style.display = 'none';
-  }
-  document.getElementById('pdetailStock').textContent = p.stock || 'In Stock';
-  document.getElementById('pdetailAddBtn').onclick = () => { closePdetail(); addMsg(p.name, 'user'); setChips([]); addToCart(p); };
-  document.getElementById('pdetailOverlay').classList.add('open');
-}
-function closePdetail(){
-  document.getElementById('pdetailOverlay').classList.remove('open');
 }
 
 // INIT
