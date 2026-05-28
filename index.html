@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Shri Mala Traders – Chat & Order</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#ECE5DD;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+.header{background:linear-gradient(135deg,#1a1208,#2c1f0a);padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:2px solid #c8962a;flex-shrink:0}
+.header-avatar{width:42px;height:42px;border-radius:50%;background:#c8962a;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.header-name{color:#e8b84b;font-family:'Playfair Display',serif;font-size:16px}
+.header-sub{color:#8a7055;font-size:11px;margin-top:2px}
+.chat-area{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.msg{max-width:82%;padding:9px 13px;font-size:13.5px;line-height:1.55;position:relative;word-break:break-word}
+.msg.bot{background:#fff;align-self:flex-start;border-radius:0 12px 12px 12px;color:#1a1208;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+.msg.user{background:#d9fdd3;align-self:flex-end;border-radius:12px 0 12px 12px;color:#1a1208}
+.msg-time{font-size:10px;color:#aaa;text-align:right;margin-top:4px}
+.chips{display:flex;flex-wrap:wrap;gap:7px;padding:10px 12px;background:rgba(255,255,255,0.6);border-top:1px solid #dcc89a;flex-shrink:0}
+.chip{background:#fff;border:1.5px solid #c8962a;color:#1a1208;padding:7px 14px;border-radius:20px;font-size:12.5px;cursor:pointer;transition:all 0.15s;font-family:'DM Sans',sans-serif;font-weight:500}
+.chip:hover,.chip:active{background:#c8962a;color:#fff}
+.input-row{background:#f0f0f0;padding:8px 10px;display:flex;gap:8px;align-items:center;flex-shrink:0;border-top:1px solid #dcc89a}
+.txt-input{flex:1;border:none;border-radius:22px;padding:9px 15px;font-size:13px;background:#fff;outline:none;font-family:'DM Sans',sans-serif}
+.send-btn{background:#1a1208;border:none;border-radius:50%;width:38px;height:38px;color:#c8962a;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.send-btn:hover{background:#c8962a;color:#fff}
+.typing-dots{display:none;align-self:flex-start;background:#fff;border-radius:0 12px 12px 12px;padding:10px 16px;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+.typing-dots span{display:inline-block;width:7px;height:7px;background:#bbb;border-radius:50%;margin:0 2px;animation:bounce 1s infinite}
+.typing-dots span:nth-child(2){animation-delay:.15s}
+.typing-dots span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+.cart-bar{background:#1a1208;color:#e8b84b;padding:8px 14px;font-size:13px;display:none;align-items:center;justify-content:space-between;flex-shrink:0;cursor:pointer}
+.cart-bar:hover{background:#2c1f0a}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.sheet{background:#fdf6e9;border-radius:20px 20px 0 0;width:100%;max-width:520px;max-height:92dvh;overflow-y:auto;padding:20px 18px 30px}
+.sheet h2{font-family:'Playfair Display',serif;color:#1a1208;font-size:18px;margin-bottom:14px}
+.field{margin-bottom:12px}
+.field label{font-size:12px;color:#8a7055;font-weight:600;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:4px}
+.field input,.field textarea{width:100%;border:1.5px solid #dcc89a;border-radius:8px;padding:9px 12px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;background:#fff;color:#1a1208;transition:border-color 0.2s}
+.field input:focus,.field textarea:focus{border-color:#c8962a}
+.field input.error,.field textarea.error{border-color:#c0392b;background:#fff5f5}
+.field textarea{height:70px;resize:none}
+.upload-area{border:2px dashed #c8962a;border-radius:10px;padding:18px;text-align:center;cursor:pointer;background:#fffbf3;margin:14px 0;transition:all 0.2s}
+.upload-area.has-file{background:#f0fdf4;border-color:#27ae60}
+.upload-area.error{border-color:#c0392b;background:#fff5f5}
+.upi-box{background:#f0fdf4;border:1.5px solid #27ae60;border-radius:10px;padding:12px 14px;margin:14px 0;text-align:center}
+.upi-id{font-size:18px;font-weight:700;color:#1a7a4a;letter-spacing:1px;margin:4px 0}
+.copy-btn{background:#27ae60;color:#fff;border:none;padding:5px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:6px}
+.confirm-btn{width:100%;background:#c8962a;color:#1a1208;border:none;padding:13px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:6px}
+.cancel-lnk{text-align:center;margin-top:10px;font-size:13px;color:#8a7055;cursor:pointer;text-decoration:underline}
+.cart-item-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #eee;font-size:13px}
+.cart-item-row:last-child{border-bottom:none}
+.remove-btn{background:none;border:none;color:#c0392b;font-size:16px;cursor:pointer}
+/* Toast */
+#toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-10px);background:#c0392b;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;opacity:0;transition:all 0.3s;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* Success */
+.success-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:center;justify-content:center}
+.success-overlay.open{display:flex}
+.success-box{background:#fff;border-radius:16px;padding:28px 24px;text-align:center;max-width:320px;margin:20px}
+.success-box h3{font-family:'Playfair Display',serif;color:#1a7a4a;font-size:22px;margin-bottom:8px}
+.success-box p{color:#555;font-size:13px;line-height:1.6;margin-bottom:16px}
+.success-close{background:#c8962a;color:#1a1208;border:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif}
+/* Product Card */
+.product-card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.13);max-width:82%;align-self:flex-start;margin-bottom:2px}
+.pcard-banner{position:relative;height:110px;display:flex;align-items:center;justify-content:center}
+.pcard-emoji{font-size:56px;line-height:1}
+.pcard-badge{position:absolute;top:10px;left:10px;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.4px;text-transform:uppercase}
+.pcard-discount{position:absolute;top:10px;right:10px;background:#e74c3c;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px}
+.pcard-body{padding:11px 14px 8px}
+.pcard-name{font-weight:700;font-size:13.5px;color:#1a1208;margin-bottom:7px;font-family:'Playfair Display',serif;line-height:1.3}
+.pcard-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:6px}
+.pcard-price{font-size:17px;font-weight:800}
+.pcard-mrp{font-size:12px;color:#bbb;text-decoration:line-through}
+.pcard-moq-pill{font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;margin-left:auto}
+.pcard-footer{font-size:11px;color:#8a7055;border-top:1px solid #f0e8d5;padding-top:6px}
+.pcard-time{font-size:10px;color:#aaa;text-align:right;padding:0 14px 8px}
+/* Product Detail Modal */
+.pdetail-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:150;align-items:flex-end;justify-content:center}
+.pdetail-overlay.open{display:flex}
+.pdetail-sheet{background:#fdf6e9;border-radius:20px 20px 0 0;width:100%;max-width:520px;max-height:88dvh;overflow-y:auto;padding:0 0 28px}
+.pdetail-hero{position:relative;height:160px;display:flex;align-items:center;justify-content:center;font-size:80px;border-radius:20px 20px 0 0}
+.pdetail-close{position:absolute;top:12px;right:14px;background:rgba(0,0,0,0.35);color:#fff;border:none;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.pdetail-body{padding:16px 18px 0}
+.pdetail-cat{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.pdetail-name{font-family:'Playfair Display',serif;font-size:20px;color:#1a1208;line-height:1.3;margin-bottom:12px}
+.pdetail-price-row{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}
+.pdetail-price{font-size:28px;font-weight:800}
+.pdetail-mrp{font-size:15px;color:#bbb;text-decoration:line-through}
+.pdetail-off{background:#e74c3c;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:12px}
+.pdetail-divider{border:none;border-top:1px solid #f0e8d5;margin:14px 0}
+.pdetail-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f5ede0;font-size:13.5px}
+.pdetail-row:last-of-type{border-bottom:none}
+.pdetail-label{color:#8a7055;font-weight:600}
+.pdetail-val{color:#1a1208;font-weight:700;text-align:right}
+.pdetail-note{background:#fffbf3;border-radius:10px;padding:10px 13px;font-size:12px;color:#8a7055;line-height:1.7;margin:14px 0}
+.pdetail-add-btn{width:100%;background:#c8962a;color:#1a1208;border:none;padding:14px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:4px}
+.pdetail-add-btn:active{background:#b5821e}
+/* Product Grid */
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-self:flex-start;max-width:92%;margin-bottom:2px}
+.pgrid-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.12);cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;border:2px solid transparent}
+.pgrid-card:active{transform:scale(0.97);box-shadow:0 1px 4px rgba(0,0,0,0.15)}
+.pgrid-card:hover{border-color:#c8962a}
+.pgrid-banner{height:80px;display:flex;align-items:center;justify-content:center;font-size:36px;position:relative}
+.pgrid-badge{position:absolute;top:5px;right:5px;font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px;color:#fff}
+.pgrid-info{padding:7px 8px 8px}
+.pgrid-name{font-size:11.5px;font-weight:600;color:#1a1208;line-height:1.3;margin-bottom:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pgrid-price{font-size:13px;font-weight:800;color:#c8962a}
+.pgrid-mrp{font-size:10px;color:#bbb;text-decoration:line-through;margin-left:4px}
+.pgrid-moq{font-size:10px;color:#8a7055;margin-top:2px}
+.pgrid-nav{display:flex;gap:8px;align-self:flex-start;flex-wrap:wrap;max-width:92%;margin-top:2px}
+.pgrid-nav-btn{background:#fff;border:1.5px solid #c8962a;color:#1a1208;padding:7px 14px;border-radius:20px;font-size:12.5px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500}
+.pgrid-nav-btn:active{background:#c8962a;color:#fff}
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<div class="header">
+  <div class="header-avatar">&#127869;&#65039;</div>
+  <div>
+    <div class="header-name">Shri Mala Traders</div>
+    <div class="header-sub">&#128994; Wholesale Crockery &middot; Madurai</div>
+  </div>
+</div>
+
+<div class="chat-area" id="chatArea"></div>
+<div class="typing-dots" id="typingDots"><span></span><span></span><span></span></div>
+
+<div class="cart-bar" id="cartBar" onclick="openOrder()">
+  <span id="cartBarText">&#128722; 0 items &middot; &#8377;0</span>
+  <span style="background:#c8962a;color:#1a1208;padding:4px 12px;border-radius:14px;font-size:12px;font-weight:700">Place Order &rsaquo;</span>
+</div>
+
+<div class="chips" id="chipsArea"></div>
+
+<div class="input-row">
+  <input class="txt-input" id="txtInput" placeholder="Search product or type..." />
+  <button class="send-btn" onclick="sendText()">&#10148;</button>
+</div>
+
+<!-- Order Sheet -->
+<div class="overlay" id="orderOverlay">
+  <div class="sheet">
+    <h2>&#128722; Your Order</h2>
+    <div id="cartReview"></div>
+    <div style="font-weight:700;font-size:15px;color:#1a1208;margin:10px 0 14px;text-align:right" id="orderTotal"></div>
+
+    <div class="upi-box">
+      <div style="font-size:12px;color:#8a7055;font-weight:600;letter-spacing:.5px">PAY VIA UPI</div>
+      <div class="upi-id">9843048820-1@okbizaxis</div>
+      <button class="copy-btn" onclick="copyUPI()">&#128203; Copy UPI ID</button>
+      <div style="font-size:11px;color:#555;margin-top:6px">PhonePe / GPay / Paytm</div>
+    </div>
+
+    <div class="field"><label>Full Name *</label><input id="f_name" placeholder="Enter your full name" /></div>
+    <div class="field"><label>Phone Number *</label><input id="f_phone" type="tel" placeholder="10-digit mobile number" /></div>
+    <div class="field"><label>Alternate Phone</label><input id="f_alt" type="tel" placeholder="Optional" /></div>
+    <div class="field"><label>Delivery Address *</label><textarea id="f_addr" placeholder="Door no, Street, City"></textarea></div>
+    <div class="field"><label>Pincode *</label><input id="f_pin" type="number" placeholder="6-digit pincode" /></div>
+
+    <div class="upload-area" id="uploadArea" onclick="document.getElementById('ssInput').click()">
+      <div style="font-size:28px">&#128248;</div>
+      <div style="font-size:13px;color:#8a7055;margin-top:6px" id="uploadText">Upload Payment Screenshot *</div>
+      <div style="font-size:11px;color:#aaa;margin-top:3px">Required to confirm your order</div>
+      <input type="file" id="ssInput" accept="image/*" style="display:none" onchange="handleScreenshot(this)" />
+    </div>
+
+    <div style="font-size:11px;color:#8a7055;background:#fffbf3;border-radius:8px;padding:10px 12px;margin-bottom:10px;line-height:1.7">
+      &#128666; <b>Delivery charges</b> will be updated via WhatsApp after order confirmation.<br>
+      &#128230; Bulk carton packing only. No individual packing.<br>
+      &#9888; Tamil Nadu delivery only. No returns or exchanges.
+    </div>
+
+    <button class="confirm-btn" id="confirmBtn" onclick="confirmOrder()">&#9989; Confirm Order</button>
+    <div class="cancel-lnk" onclick="closeOrder()">Cancel</div>
+  </div>
+</div>
+
+<!-- Success -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-box">
+    <div style="font-size:48px;margin-bottom:8px">&#9989;</div>
+    <h3>Order Placed!</h3>
+    <p id="successMsg">Your order has been received. We will send you the delivery charges via WhatsApp shortly. Thank you!</p>
+    <button class="success-close" onclick="closeSuccess()">Continue Shopping</button>
+  </div>
+</div>
+
+<!-- Product Detail Modal -->
+<div class="pdetail-overlay" id="pdetailOverlay">
+  <div class="pdetail-sheet">
+    <div class="pdetail-hero" id="pdetailHero">
+      <div id="pdetailEmoji" style="font-size:80px"></div>
+      <button class="pdetail-close" onclick="closePdetail()">✕</button>
+      <div id="pdetailBadge" style="position:absolute;top:14px;left:14px;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;color:#fff;letter-spacing:.5px;text-transform:uppercase"></div>
+      <div id="pdetailDiscount" style="position:absolute;top:14px;right:50px;background:#e74c3c;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px"></div>
+    </div>
+    <div class="pdetail-body">
+      <div class="pdetail-cat" id="pdetailCat"></div>
+      <div class="pdetail-name" id="pdetailName"></div>
+      <div class="pdetail-price-row">
+        <span class="pdetail-price" id="pdetailPrice"></span>
+        <span class="pdetail-mrp" id="pdetailMrp"></span>
+        <span class="pdetail-off" id="pdetailOff"></span>
+      </div>
+      <hr class="pdetail-divider">
+      <div class="pdetail-row"><span class="pdetail-label">📦 Min. Order Qty</span><span class="pdetail-val" id="pdetailMoq"></span></div>
+      <div class="pdetail-row"><span class="pdetail-label">💰 Min. Order Value</span><span class="pdetail-val" id="pdetailMinVal"></span></div>
+      <div class="pdetail-row" id="pdetailCodeRow"><span class="pdetail-label">🔖 Product Code</span><span class="pdetail-val" id="pdetailCode"></span></div>
+      <div class="pdetail-row"><span class="pdetail-label">✅ Stock Status</span><span class="pdetail-val" id="pdetailStock"></span></div>
+      <div class="pdetail-note">🚚 Tamil Nadu delivery only &nbsp;·&nbsp; 📦 Bulk carton packing<br>📸 Delivery charges updated after payment via WhatsApp</div>
+      <button class="pdetail-add-btn" id="pdetailAddBtn">🛒 Add to Cart</button>
+      <div class="cancel-lnk" onclick="closePdetail()" style="margin-top:12px">Close</div>
+    </div>
+  </div>
+</div>
+
+<script>
+window.PRODUCTS = window.PRODUCTS || [{"id":1777983071751,"name":"Fashion Tray (S)","cat":"Tray","mrp":69,"price":62,"stock":"available","moq":6,"code":"850055"},{"id":1777983453812,"name":"Round Tray Mini","cat":"Tray","mrp":69,"price":62,"stock":"available","moq":6,"code":"820055"},{"id":1777983578826,"name":"Square Tray (S)","cat":"Tray","mrp":69,"price":62,"stock":"available","moq":6,"code":"850055"},{"id":1777983676578,"name":"Harmony Tray (S)","cat":"Tray","mrp":75,"price":68,"stock":"available","moq":6,"code":"920060"},{"id":1777983792912,"name":"Supreme Tray (M)","cat":"Tray","mrp":100,"price":90,"stock":"available","moq":6,"code":"120080"},{"id":1777983896074,"name":"Round Tray (M)","cat":"Tray","mrp":94,"price":85,"stock":"In Stock","moq":6,"code":"110075"},{"id":1777984009320,"name":"Round Tray (B)","cat":"Tray","mrp":150,"price":135,"stock":"In Stock","moq":6,"code":"172120"},{"id":1777985793355,"name":"Platinum Tray (L)","cat":"Tray","mrp":150,"price":135,"stock":"In Stock","moq":6,"code":"176120"},{"id":1777985870551,"name":"Square Tray (L)","cat":"Tray","mrp":150,"price":135,"stock":"In Stock","moq":6,"code":"175120"},{"id":1777985997392,"name":"Supreme Tray (L)","cat":"Tray","mrp":225,"price":203,"stock":"In Stock","moq":6,"code":"256180"},{"id":1777986073392,"name":"Fashion Tray (L)","cat":"Tray","mrp":156,"price":141,"stock":"In Stock","moq":6,"code":"178125"},{"id":1777986546019,"name":"STL 10\" CROWN","cat":"Plates","mrp":62,"price":56,"stock":"In Stock","moq":84,"code":"700045"},{"id":1777986615144,"name":"STL AFREEN","cat":"Plates","mrp":83,"price":75,"stock":"In Stock","moq":84,"code":"880060"},{"id":1777987507493,"name":"STC 11\" CROWN","cat":"Plates","mrp":34,"price":31,"stock":"In Stock","moq":84,"code":"840052"},{"id":1777987705619,"name":"STC 11\" CROWN KP","cat":"Plates","mrp":72,"price":65,"stock":"In Stock","moq":84,"code":"840052"},{"id":1777988216736,"name":"STL 12\" CLASSIC","cat":"Plates","mrp":89,"price":80,"stock":"In Stock","moq":84,"code":"106065"},{"id":1777988292076,"name":"STL 12\" CLASSIC KP","cat":"Plates","mrp":89,"price":80,"stock":"In Stock","moq":84,"code":"106065"},{"id":1777988336678,"name":"STL 12\" ELEGANT","cat":"Plates","mrp":89,"price":80,"stock":"In Stock","moq":84,"code":"100065"},{"id":1777988408225,"name":"STL 12\" CROWN","cat":"Plates","mrp":83,"price":75,"stock":"In Stock","moq":84,"code":"880060"},{"id":1777988483407,"name":"STL 12\" CROWN KP","cat":"Plates","mrp":83,"price":75,"stock":"In Stock","moq":84,"code":"880060"},{"id":1777988541763,"name":"STL 12\" CROWN CLR","cat":"Plates","mrp":83,"price":75,"stock":"In Stock","moq":84,"code":"880060"},{"id":1777988663104,"name":"STL BAT BIG","cat":"Plates","mrp":135,"price":122,"stock":"In Stock","moq":100,"code":"158098"},{"id":1777988740231,"name":"STL MOMOS","cat":"Plates","mrp":105,"price":94,"stock":"In Stock","moq":100,"code":"122076"},{"id":1777988809306,"name":"STL SQ LONG","cat":"Plates","mrp":110,"price":99,"stock":"In Stock","moq":100,"code":"128080"},{"id":1777988906549,"name":"STL BIRYANI BIG","cat":"Plates","mrp":116,"price":104,"stock":"In Stock","moq":100,"code":"134084"},{"id":1777989047440,"name":"STL BAT SMALL","cat":"Plates","mrp":117,"price":105,"stock":"In Stock","moq":100,"code":"136085"},{"id":1777989127733,"name":"STL BIRYANI SMALL","cat":"Plates","mrp":94,"price":85,"stock":"In Stock","moq":100,"code":"110068"},{"id":1777989212149,"name":"STL PASTA PLATE","cat":"Plates","mrp":89,"price":80,"stock":"In Stock","moq":100,"code":"100065"},{"id":1777989271554,"name":"STL SNACK BOWL","cat":"Plates","mrp":66,"price":59,"stock":"In Stock","moq":100,"code":"730048"},{"id":1777989340960,"name":"STL DAL SMALL","cat":"Plates","mrp":74,"price":67,"stock":"In Stock","moq":100,"code":"840054"},{"id":1777989401645,"name":"STL DAL BIG","cat":"Plates","mrp":91,"price":82,"stock":"In Stock","moq":100,"code":"106066"},{"id":1777989478771,"name":"STL SPS070","cat":"Plates","mrp":96,"price":86,"stock":"In Stock","moq":100,"code":"SPS070"},{"id":1777989539385,"name":"STL LEAF","cat":"Plates","mrp":107,"price":96,"stock":"In Stock","moq":100,"code":"126078"},{"id":1777989615263,"name":"STL 4\" CHAT","cat":"Plates","mrp":28,"price":25,"stock":"In Stock","moq":100,"code":"320020"},{"id":1777989677308,"name":"STL 5\" CHAT","cat":"Plates","mrp":33,"price":30,"stock":"In Stock","moq":100,"code":"360024"},{"id":1777989739449,"name":"STL 6\" CHAT","cat":"Plates","mrp":36,"price":32,"stock":"In Stock","moq":100,"code":"380026"},{"id":1777989802544,"name":"STL KULLAD","cat":"Plates","mrp":41,"price":37,"stock":"In Stock","moq":100,"code":"440030"},{"id":1777990451976,"name":"AVN WAVE","cat":"Plates","mrp":48,"price":43,"stock":"In Stock","moq":108,"code":"460035"},{"id":1777990625873,"name":"AVN MARVELL","cat":"Plates","mrp":48,"price":43,"stock":"In Stock","moq":108,"code":"440035"},{"id":1777990699239,"name":"AVN ULTRA","cat":"Plates","mrp":34,"price":31,"stock":"In Stock","moq":108,"code":"300025"},{"id":1777990787754,"name":"AVN 11\" MINI THALI","cat":"Plates","mrp":50,"price":45,"stock":"In Stock","moq":108,"code":"560036"},{"id":1777990979923,"name":"AVN 10\" MINAXI","cat":"Plates","mrp":55,"price":50,"stock":"In Stock","moq":108,"code":"540040"},{"id":1778051170291,"name":"AVN CLASSIQ","cat":"Plates","mrp":55,"price":50,"stock":"In Stock","moq":108,"code":"520040"},{"id":1778051485932,"name":"AVN MARVELL KP","cat":"Plates","mrp":48,"price":43,"stock":"In Stock","moq":108,"code":"440035"},{"id":1778051616508,"name":"AVN 10\" MISTY","cat":"Plates","mrp":62,"price":56,"stock":"In Stock","moq":108,"code":"640045"},{"id":1778051719397,"name":"AVN 10\" MINI THALI","cat":"Plates","mrp":37,"price":34,"stock":"In Stock","moq":108,"code":"420027"},{"id":1778051789466,"name":"AVN MAUSAM KP","cat":"Plates","mrp":55,"price":50,"stock":"In Stock","moq":108,"code":"540040"},{"id":1778051848366,"name":"AVN","cat":"Plates","mrp":62,"price":56,"stock":"In Stock","moq":108,"code":"620045"},{"id":1778051906022,"name":"AVN BUBBLE SP","cat":"Plates","mrp":66,"price":60,"stock":"In Stock","moq":108,"code":"720048"},{"id":1778051962785,"name":"AVN 11\" MINAXI","cat":"Plates","mrp":58,"price":52,"stock":"In Stock","moq":108,"code":"660042"},{"id":1778052020708,"name":"AVN SAFFIRE","cat":"Plates","mrp":66,"price":60,"stock":"In Stock","moq":108,"code":"620048"},{"id":1778052139833,"name":"AVN DREAMS","cat":"Plates","mrp":83,"price":75,"stock":"In Stock","moq":108,"code":"940060"},{"id":1778052223063,"name":"AVN SWAGAT FP","cat":"Plates","mrp":69,"price":62,"stock":"In Stock","moq":108,"code":"700050"},{"id":1778052304827,"name":"AVN NARGIS KP","cat":"Plates","mrp":72,"price":65,"stock":"In Stock","moq":108,"code":"700052"},{"id":1778052428850,"name":"AVN NARGIS W","cat":"Plates","mrp":72,"price":65,"stock":"In Stock","moq":108,"code":"700052"},{"id":1778052495808,"name":"AVN SWAGAT KP","cat":"Plates","mrp":69,"price":62,"stock":"In Stock","moq":108,"code":"700050"},{"id":1778052569413,"name":"AVN BUFFET 2 KP","cat":"Plates","mrp":89,"price":81,"stock":"In Stock","moq":108,"code":"920065"},{"id":1778052627131,"name":"AVN BUFFET 2","cat":"Plates","mrp":89,"price":81,"stock":"In Stock","moq":108,"code":"920065"},{"id":1778052748714,"name":"AVN STAR 2","cat":"Plates","mrp":69,"price":62,"stock":"In Stock","moq":108,"code":"650050"},{"id":1778052812904,"name":"AVN PAYAL KP","cat":"Plates","mrp":62,"price":56,"stock":"In Stock","moq":108,"code":"590045"},{"id":1778052858826,"name":"AVN STAR 2KP","cat":"Plates","mrp":69,"price":62,"stock":"In Stock","moq":108,"code":"650050"},{"id":1778052917027,"name":"AVN PAYAL","cat":"Plates","mrp":62,"price":56,"stock":"In Stock","moq":108,"code":"590045"},{"id":1778052975906,"name":"AVN BUL BUL","cat":"Plates","mrp":62,"price":56,"stock":"In Stock","moq":108,"code":"570045"},{"id":1778053037918,"name":"AVN BULBUL KP","cat":"Plates","mrp":62,"price":56,"stock":"In Stock","moq":108,"code":"570045"},{"id":1778053084622,"name":"AVN BUFFET 3","cat":"Plates","mrp":103,"price":93,"stock":"In Stock","moq":108,"code":"120075"},{"id":1778053143099,"name":"AVN MANNAT FP","cat":"Plates","mrp":66,"price":60,"stock":"In Stock","moq":108,"code":"660048"},{"id":1778063255701,"name":"BIG NANO -SILVER PLATE","cat":"Plates","mrp":38,"price":34,"stock":"In Stock","moq":100,"code":"460030"},{"id":1778064146873,"name":"MINI LOVELY - SILVER PLATE","cat":"Plates","mrp":23,"price":20,"stock":"In Stock","moq":100,"code":"250018"},{"id":1778064659035,"name":"TWINKLE MINI - SILVER PLATE","cat":"Plates","mrp":23,"price":20,"stock":"In Stock","moq":100,"code":"280018"},{"id":1778064897546,"name":"TRENDY 11 \" - SILVER PLATE","cat":"Plates","mrp":50,"price":45,"stock":"In Stock","moq":100,"code":"590040"},{"id":1778064992143,"name":"JUMBO TRENDY - SILVER PLATE","cat":"Plates","mrp":75,"price":68,"stock":"In Stock","moq":100,"code":"900060"},{"id":1778161591122,"name":"Delisoga ZB2011-1 Premium Glass Set","cat":"Glassware","mrp":275,"price":249,"stock":"In Stock","moq":12,"code":"346220"},{"id":1778162049646,"name":"Delisoga ZB447 Sleek Glass Mug Set","cat":"Glassware","mrp":275,"price":249,"stock":"In Stock","moq":12,"code":"356220"},{"id":1778162201273,"name":"Delisoga ZB447B Textured Glass Mug Set","cat":"Glassware","mrp":275,"price":249,"stock":"In Stock","moq":12,"code":"356220"},{"id":1778162505913,"name":"Delisoga XBB087-1 Elegant Tulip Mug Set","cat":"Glassware","mrp":275,"price":249,"stock":"In Stock","moq":12,"code":"356220"},{"id":1778162881990,"name":"Delisoga ZB261-120C Vintage Textured Mug Set","cat":"Glassware","mrp":263,"price":237,"stock":"In Stock","moq":12,"code":"326210"},{"id":1778163094008,"name":"Delisoga ZB2010-1C Crystal Diamond Mug Set","cat":"Glassware","mrp":263,"price":237,"stock":"In Stock","moq":12,"code":"326210"},{"id":1778163478804,"name":"Delisoga ZB261-120A Crystal Embossed Mug Set","cat":"Glassware","mrp":263,"price":237,"stock":"In Stock","moq":12,"code":"326210"},{"id":1778163839058,"name":"Delisoga ZB2010-1A Textured Mug Set","cat":"Glassware","mrp":263,"price":237,"stock":"In Stock","moq":12,"code":"326210"},{"id":1778164018610,"name":"Marc Samuels PK47-1 Elegant Glass Cup Set","cat":"Glassware","mrp":275,"price":249,"stock":"In Stock","moq":12,"code":"337210"},{"id":1778164134644,"name":"Blinkmax KTZB-78 Premium Glass Cup Set","cat":"Glassware","mrp":275,"price":249,"stock":"In Stock","moq":12,"code":"337210"},{"id":1778331509942,"name":"Blinkmax ZB241 Fish Premium Glass Cup Set","cat":"Glassware","mrp":275,"price":249,"stock":"In Stock","moq":12,"code":"346220"},{"id":1778331655698,"name":"Blinkmax CF001 Premium Glass Cup Set","cat":"Glassware","mrp":275,"price":249,"stock":"In Stock","moq":12,"code":"356220"},{"id":1778331812959,"name":"Blinkmax ZB 2010-1 Premium Glass Mug Set","cat":"Glassware","mrp":263,"price":237,"stock":"In Stock","moq":12,"code":"326210"},{"id":1778332039472,"name":"Blinkmax ZB264-130C Premium Glass Mug Set","cat":"Glassware","mrp":263,"price":237,"stock":"In Stock","moq":12,"code":"326210"},{"id":1778332188387,"name":"Blinkmax ZB260-90 Premium Glass Mug Set","cat":"Glassware","mrp":263,"price":237,"stock":"In Stock","moq":12,"code":"326210"},{"id":1778332280951,"name":"Blinkmax ZB264-130B Premium Glass Mug Set","cat":"Glassware","mrp":263,"price":237,"stock":"In Stock","moq":12,"code":"326210"},{"id":1778332369634,"name":"Blinkmax DSCF063-1 Premium Glass Cup Set","cat":"Glassware","mrp":225,"price":203,"stock":"In Stock","moq":12,"code":"293180"},{"id":1778332495462,"name":"Blinkmax BMZ1204YL Premium Glass Cup Set","cat":"Glassware","mrp":275,"price":249,"stock":"In Stock","moq":12,"code":"356220"},{"id":1778332600426,"name":"Blinkmax DSZB023-2 Premium Glass Cup Set","cat":"Glassware","mrp":213,"price":192,"stock":"In Stock","moq":12,"code":"270170"},{"id":1778333113935,"name":"Kids Printed Partition Dinner Plate","cat":"Plates","mrp":81,"price":73,"stock":"In Stock","moq":84,"code":""},{"id":1778333205644,"name":"Kids Printed 4 Section Dinner Plate","cat":"Plates","mrp":81,"price":73,"stock":"In Stock","moq":84,"code":""},{"id":1778333471369,"name":"Kids Printed 4 Section Dinner Plate-L","cat":"Plates","mrp":94,"price":85,"stock":"In Stock","moq":84,"code":""},{"id":1778333612224,"name":"Kids Printed 4 Section Dinner Plate","cat":"Plates","mrp":81,"price":73,"stock":"In Stock","moq":84,"code":""},{"id":1778333750623,"name":"Kids Space Theme Section Dinner Plate","cat":"Plates","mrp":81,"price":73,"stock":"In Stock","moq":84,"code":""},{"id":1778333916243,"name":"Kids Cartoon Bear Shape Section Dinner Plate","cat":"Plates","mrp":81,"price":73,"stock":"In Stock","moq":84,"code":""},{"id":1778334017468,"name":"Kids Apple Shape Section Dinner Plate","cat":"Plates","mrp":81,"price":73,"stock":"In Stock","moq":84,"code":""},{"id":1778334219561,"name":"Designer Printed Round Dinner Plate","cat":"Plates","mrp":81,"price":73,"stock":"In Stock","moq":84,"code":""},{"id":1778334358010,"name":"Kids Printed Round 5 Section Dinner Plate","cat":"Plates","mrp":81,"price":73,"stock":"In Stock","moq":84,"code":""},{"id":1778507452570,"name":"Royal Gold Decorative Pooja Plate","cat":"Plates","mrp":113,"price":102,"stock":"In Stock","moq":100,"code":""},{"id":1778507662357,"name":"Royal Floral Gold Pooja Plate","cat":"Plates","mrp":138,"price":124,"stock":"In Stock","moq":100,"code":"164100"},{"id":1778507788716,"name":"Golden Decorative Pooja Serving Tray","cat":"Plates","mrp":188,"price":170,"stock":"In Stock","moq":100,"code":"195150"},{"id":1778508230026,"name":"Golden Floral Designer Pooja Plate","cat":"Plates","mrp":75,"price":68,"stock":"In Stock","moq":100,"code":"920060"},{"id":1778508685794,"name":"Royal Golden Designer Pooja Plate","cat":"Plates","mrp":113,"price":102,"stock":"In Stock","moq":100,"code":"132090"},{"id":1778508762727,"name":"Luxury Golden Floral Pooja Plate","cat":"Plates","mrp":150,"price":136,"stock":"In Stock","moq":100,"code":"173120"},{"id":1778508866538,"name":"Royal Gold Finish Oval Pooja Serving Tray with Handles","cat":"Plates","mrp":113,"price":102,"stock":"In Stock","moq":100,"code":"120080"},{"id":1778508977194,"name":"Premium Gold Finish Decorative Pooja Serving Tray with Handles","cat":"Plates","mrp":150,"price":136,"stock":"In Stock","moq":100,"code":"166110"},{"id":1778509079912,"name":"Royal Gold Finish Round Pooja Tray with Designer Handles","cat":"Plates","mrp":113,"price":102,"stock":"In Stock","moq":100,"code":"120080"},{"id":1778509169981,"name":"Premium Gold Finish Decorative Round Pooja Tray with Handles","cat":"Plates","mrp":150,"price":135,"stock":"In Stock","moq":100,"code":"166110"},{"id":1778509249471,"name":"Premium Gold Finish Rectangular Pooja Serving Tray with Designer Handles","cat":"Plates","mrp":113,"price":102,"stock":"In Stock","moq":100,"code":"166110"},{"id":1778509546150,"name":"Golden Floral Designer Pooja Plate","cat":"Plates","mrp":113,"price":102,"stock":"In Stock","moq":100,"code":"133080"},{"id":1779185273381,"name":"Royal Golden Embossed Serving Tray with Handles","cat":"Plates","mrp":150,"price":135,"stock":"In Stock","moq":100,"code":"166120"},{"id":1779187179883,"name":"Silver Floral Embossed Decorative Serving Plate","cat":"Plates","mrp":113,"price":102,"stock":"In Stock","moq":100,"code":"112090"},{"id":1779189157663,"name":"Silver Floral Designer Serving Tray with Handles","cat":"Plates","mrp":163,"price":147,"stock":"In Stock","moq":100,"code":"210130"},{"id":1779189539419,"name":"Silver Designer Serving Tray with Handles","cat":"Plates","mrp":75,"price":68,"stock":"In Stock","moq":100,"code":"960060"},{"id":1779191154679,"name":"Mina Trendy Designer Decorative Plate","cat":"Plates","mrp":107,"price":96,"stock":"In Stock","moq":100,"code":"115085"},{"id":1779193385701,"name":"Mini T20 Designer Serving Tray","cat":"Plates","mrp":21,"price":19,"stock":"In Stock","moq":100,"code":"250017"},{"id":1779193601937,"name":"Dubai 4 Designer Serving Tray","cat":"Plates","mrp":38,"price":34,"stock":"In Stock","moq":100,"code":"430030"},{"id":1779193920350,"name":"Big Trendy Designer Decorative Plate","cat":"Plates","mrp":38,"price":34,"stock":"In Stock","moq":100,"code":"450030"},{"id":1779194168758,"name":"Dubai 1 Designer Serving Tray","cat":"Plates","mrp":21,"price":19,"stock":"In Stock","moq":100,"code":"240017"},{"id":1779194666663,"name":"Iconic 6 Designer Serving Tray","cat":"Plates","mrp":75,"price":68,"stock":"In Stock","moq":100,"code":"810060"},{"id":1779194995006,"name":"Dubai 2 Designer Serving Tray","cat":"Plates","mrp":26,"price":24,"stock":"In Stock","moq":100,"code":"330021"},{"id":1779195341800,"name":"Oscar 11 Designer Decorative Plate","cat":"Plates","mrp":50,"price":45,"stock":"In Stock","moq":6,"code":"570040"},{"id":1779196054701,"name":"Medium Oscar Designer Decorative Plate","cat":"Plates","mrp":38,"price":34,"stock":"In Stock","moq":100,"code":"440030"},{"id":1779196597225,"name":"Medium Twinkle Designer Decorative Plate","cat":"Plates","mrp":38,"price":34,"stock":"In Stock","moq":100,"code":"440030"}]
+;
+
+window.UPI = '9843048820-1@okbizaxis';
+var UPI = window.UPI;
+window.ADMIN_EMAIL = 'shrimalatraders@gmail.com';
+window.EMAILJS_PUBLIC = 'YOUR_EMAILJS_PUBLIC_KEY';
+window.EMAILJS_SERVICE = 'YOUR_EMAILJS_SERVICE_ID';
+window.EMAILJS_TEMPLATE = 'YOUR_EMAILJS_TEMPLATE_ID';
+
+
+if(typeof cart==='undefined') var cart=[];
+if(typeof screenshotB64==='undefined') var screenshotB64='';
+var botState = 'home';
+var window_pendingProduct = null;
+var currentProduct = null;
+var toastTimer = null;
+
+const chatArea = document.getElementById('chatArea');
+const typingDots = document.getElementById('typingDots');
+const chipsArea = document.getElementById('chipsArea');
+
+// ── TOAST (2-second auto-dismiss) ──
+function showToast(msg, focusId){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ t.classList.remove('show'); }, 2000);
+  if(focusId){
+    setTimeout(()=>{
+      const el = document.getElementById(focusId);
+      if(el){ el.classList.add('error'); el.focus(); setTimeout(()=>el.classList.remove('error'),2500); }
+    }, 100);
+  }
+}
+
+function now(){
+  const d = new Date();
+  return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+}
+
+function addMsg(text, type){
+  const d = document.createElement('div');
+  d.className = 'msg ' + type;
+  d.innerHTML = text.replace(/\*(.*?)\*/g,'<b>$1</b>').replace(/\n/g,'<br>')
+    + '<div class="msg-time">' + now() + (type==='user' ? ' ✓✓' : '') + '</div>';
+  chatArea.appendChild(d);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function getProductEmoji(p){
+  const n = p.name.toLowerCase();
+  const c = p.cat.toLowerCase();
+  if(c==='glassware') return {emoji:'🥃', color:'#d4eaf7', accent:'#4a90c4', label:'Glassware'};
+  if(c==='tray'){
+    if(n.includes('gold')||n.includes('platinum')) return {emoji:'✨', color:'#fdf3d0', accent:'#c8962a', label:'Premium Tray'};
+    return {emoji:'🍽️', color:'#fef9ec', accent:'#c8962a', label:'Serving Tray'};
+  }
+  if(n.includes('kids')||n.includes('cartoon')||n.includes('bear')||n.includes('space')||n.includes('apple'))
+    return {emoji:'🧒', color:'#fff0f5', accent:'#e91e8c', label:'Kids Plate'};
+  if(n.includes('pooja')||n.includes('gold')||n.includes('royal')||n.includes('luxury'))
+    return {emoji:'🪔', color:'#fff8e6', accent:'#b8860b', label:'Decorative'};
+  if(n.includes('biryani')||n.includes('thali')||n.includes('buffet'))
+    return {emoji:'🍛', color:'#fff4e6', accent:'#e67e22', label:'Dinner Plate'};
+  if(n.includes('chat')||n.includes('snack')||n.includes('kullad')||n.includes('mini'))
+    return {emoji:'🫙', color:'#f0fff4', accent:'#27ae60', label:'Snack Plate'};
+  if(n.includes('mug')||n.includes('cup')) return {emoji:'☕', color:'#f5f0ff', accent:'#8e44ad', label:'Mug/Cup'};
+  return {emoji:'🥘', color:'#fef9ec', accent:'#c8962a', label:'Plate'};
+}
+
+function addProductCard(p){
+  const card = document.createElement('div');
+  card.className = 'product-card';
+  const {emoji, color, accent, label} = getProductEmoji(p);
+  const minVal = (p.price * p.moq).toFixed(0);
+  const discount = Math.round(((p.mrp - p.price) / p.mrp) * 100);
+  card.innerHTML =
+    '<div class="pcard-banner" style="background:' + color + ';border-bottom:2px solid ' + accent + '20">' +
+      '<div class="pcard-emoji">' + emoji + '</div>' +
+      '<div class="pcard-badge" style="background:' + accent + '">' + label + '</div>' +
+      (discount > 0 ? '<div class="pcard-discount">-' + discount + '% OFF</div>' : '') +
+    '</div>' +
+    '<div class="pcard-body">' +
+      '<div class="pcard-name">' + p.name + '</div>' +
+      '<div class="pcard-row">' +
+        '<span class="pcard-price" style="color:' + accent + '">₹' + p.price + '</span>' +
+        '<span class="pcard-mrp">₹' + p.mrp + '</span>' +
+        '<span class="pcard-moq-pill" style="background:' + accent + '20;color:' + accent + '">MOQ: ' + p.moq + ' pcs</span>' +
+      '</div>' +
+      '<div class="pcard-footer">Min. Order ₹' + minVal + (p.code ? ' &nbsp;·&nbsp; Code: ' + p.code : '') + '</div>' +
+    '</div>' +
+    '<div class="pcard-time">' + now() + '</div>';
+  chatArea.appendChild(card);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function setChips(opts){
+  chipsArea.innerHTML = '';
+  opts.forEach(o => {
+    const b = document.createElement('button');
+    b.className = 'chip';
+    b.textContent = o.label;
+    b.onclick = () => handleChip(o);
+    chipsArea.appendChild(b);
+  });
+}
+
+function showTyping(cb, delay=900){
+  typingDots.style.display = 'flex';
+  chatArea.scrollTop = chatArea.scrollHeight;
+  setTimeout(() => {
+    typingDots.style.display = 'none';
+    cb();
+    chatArea.scrollTop = chatArea.scrollHeight;
+  }, delay);
+}
+
+function botReply(text, chips, delay=900){
+  showTyping(() => {
+    addMsg(text, 'bot');
+    if(chips) setChips(chips);
+  }, delay);
+}
+
+// ── HOME ──
+function goHome(){
+  botState = 'home';
+  botReply(
+    'Welcome to *Shri Mala Traders!* 🙏\n\nMadurai\'s wholesale crockery specialist.\nHow can I help you today?',
+    [
+      {label:'🍽️ Trays', action:'cat', val:'Tray'},
+      {label:'🥘 Plates', action:'cat', val:'Plates'},
+      {label:'🥃 Glassware', action:'cat', val:'Glassware'},
+      {label:'🔍 Search Product', action:'search'},
+      {label:'📋 How to Order', action:'howto'},
+      {label:'📞 Contact Us', action:'contact'},
+    ]
+  );
+}
+
+function handleChip(o){
+  addMsg(o.label, 'user');
+  setChips([]);
+  if(o.action==='cat')      showCategory(o.val);
+  else if(o.action==='search')  startSearch();
+  else if(o.action==='howto')   showHowTo();
+  else if(o.action==='contact') showContact();
+  else if(o.action==='product') showProduct(o.val);
+  else if(o.action==='addcart') addToCart(o.val);
+  else if(o.action==='more')    showCategory(o.val, o.page);
+  else if(o.action==='home')    goHome();
+  else if(o.action==='opencart') openOrder();
+  else if(o.action==='qty')     handleQty(o.pid, o.qty);
+  else if(o.action==='viewimg'){ openPdetail(o.val); }
+}
+
+const PAGE_SIZE = 8;
+function showCategory(cat, page=0){
+  botState = 'cat';
+  const items = PRODUCTS.filter(p => p.cat === cat);
+  const slice = items.slice(page*PAGE_SIZE, (page+1)*PAGE_SIZE);
+  showTyping(() => {
+    addMsg('📦 *' + cat + ' Products* (' + items.length + ' items)\n\nTap a product to see details & add to cart:', 'bot');
+    // Build visual grid
+    const grid = document.createElement('div');
+    grid.className = 'pgrid';
+    slice.forEach(p => {
+      const {emoji, color, accent} = getProductEmoji(p);
+      const discount = Math.round(((p.mrp - p.price) / p.mrp) * 100);
+      const card = document.createElement('div');
+      card.className = 'pgrid-card';
+      card.innerHTML =
+        '<div class="pgrid-banner" style="background:' + color + '">' +
+          emoji +
+          (discount > 0 ? '<div class="pgrid-badge" style="background:#e74c3c">-' + discount + '%</div>' : '') +
+        '</div>' +
+        '<div class="pgrid-info">' +
+          '<div class="pgrid-name">' + p.name + '</div>' +
+          '<div><span class="pgrid-price">₹' + p.price + '</span><span class="pgrid-mrp">₹' + p.mrp + '</span></div>' +
+          '<div class="pgrid-moq">MOQ: ' + p.moq + ' pcs</div>' +
+        '</div>';
+      card.onclick = () => { addMsg(p.name, 'user'); setChips([]); showProduct(p); };
+      grid.appendChild(card);
+    });
+    chatArea.appendChild(grid);
+    // Nav buttons
+    const nav = document.createElement('div');
+    nav.className = 'pgrid-nav';
+    if((page+1)*PAGE_SIZE < items.length){
+      const moreBtn = document.createElement('button');
+      moreBtn.className = 'pgrid-nav-btn';
+      moreBtn.textContent = '➡ More ' + cat;
+      moreBtn.onclick = () => { addMsg('More ' + cat, 'user'); showCategory(cat, page+1); };
+      nav.appendChild(moreBtn);
+    }
+    const homeBtn = document.createElement('button');
+    homeBtn.className = 'pgrid-nav-btn';
+    homeBtn.textContent = '🏠 Main Menu';
+    homeBtn.onclick = () => { addMsg('Main Menu', 'user'); goHome(); };
+    nav.appendChild(homeBtn);
+    chatArea.appendChild(nav);
+    chatArea.scrollTop = chatArea.scrollHeight;
+    setChips([]);
+  });
+}
+
+function showProduct(p){
+  botState = 'product';
+  currentProduct = p;
+  const minVal = (p.price * p.moq).toFixed(0);
+  let txt =
+    '📋 *' + p.name + '*\n\n' +
+    '💰 *Sale Price:* ₹' + p.price + ' per piece\n' +
+    '🏷 MRP: ₹' + p.mrp + ' per piece\n' +
+    '📦 *MOQ:* ' + p.moq + ' pcs\n' +
+    '🧾 *Min. Order Value:* ₹' + minVal + '\n' +
+    (p.code ? '🔖 Product Code: ' + p.code + '\n' : '') +
+    '✅ Status: In Stock\n\n' +
+    '🚚 Tamil Nadu delivery only. Bulk carton packing.\n' +
+    '📸 Delivery charges updated after payment.';
+  showTyping(() => {
+    addProductCard(p);
+    addMsg(txt, 'bot');
+    setChips([
+      {label:'🛒 Add to Cart', action:'addcart', val:p},
+      {label:'⬅ Back to ' + p.cat, action:'cat', val:p.cat},
+      {label:'🏠 Main Menu', action:'home'},
+    ]);
+  });
+}
+
+function addToCart(p){
+  botState = 'qty';
+  window_pendingProduct = p;
+  botReply(
+    '🛒 *' + p.name + '*\n\nMinimum Order: *' + p.moq + ' pcs*\nHow many pieces do you want?\n(Enter a multiple of ' + p.moq + ')',
+    [
+      {label: p.moq + ' pcs', action:'qty', pid:p, qty:p.moq},
+      {label: (p.moq*2) + ' pcs', action:'qty', pid:p, qty:p.moq*2},
+      {label: (p.moq*3) + ' pcs', action:'qty', pid:p, qty:p.moq*3},
+      {label: (p.moq*5) + ' pcs', action:'qty', pid:p, qty:p.moq*5},
+      {label: 'Type custom quantity', action:'search'},
+    ]
+  );
+}
+
+function handleQty(p, qty){
+  const existing = cart.findIndex(c => c.id === p.id);
+  if(existing >= 0) cart[existing].qty += qty;
+  else cart.push({...p, qty});
+  updateCartBar();
+  const total = cart.reduce((s,i) => s + (i.price * i.qty), 0);
+  botReply(
+    '✅ *Added to Cart!*\n\n' + p.name + ' × ' + qty + ' pcs\nValue: ₹' + (p.price * qty) + '\n\n🛒 Cart total: ₹' + total,
+    [
+      {label:'🛒 View Cart & Order', action:'opencart'},
+      {label:'➕ Add More Products', action:'home'},
+    ]
+  );
+}
+
+function startSearch(){
+  botState = 'search';
+  botReply('🔍 *Search for a product:*\n\nType the product name below.\n(e.g. "tray", "plate", "glass", "STL")',
+    [{label:'🏠 Main Menu', action:'home'}]);
+  document.getElementById('txtInput').focus();
+}
+
+function doSearch(q){
+  const ql = q.toLowerCase();
+  const results = PRODUCTS.filter(p =>
+    p.name.toLowerCase().includes(ql) ||
+    p.cat.toLowerCase().includes(ql) ||
+    (p.code && p.code.toLowerCase().includes(ql))
+  ).slice(0, 10);
+  if(!results.length){
+    botReply('No results found for "' + q + '"\n\nTry browsing by category:', [
+      {label:'🍽️ Trays', action:'cat', val:'Tray'},
+      {label:'🥘 Plates', action:'cat', val:'Plates'},
+      {label:'🥃 Glassware', action:'cat', val:'Glassware'},
+      {label:'🏠 Main Menu', action:'home'},
+    ]);
+    return;
+  }
+  showTyping(() => {
+    addMsg('🔍 *' + results.length + ' results for "' + q + '":*', 'bot');
+    const grid = document.createElement('div');
+    grid.className = 'pgrid';
+    results.forEach(p => {
+      const {emoji, color, accent} = getProductEmoji(p);
+      const discount = Math.round(((p.mrp - p.price) / p.mrp) * 100);
+      const card = document.createElement('div');
+      card.className = 'pgrid-card';
+      card.innerHTML =
+        '<div class="pgrid-banner" style="background:' + color + '">' +
+          emoji +
+          (discount > 0 ? '<div class="pgrid-badge" style="background:#e74c3c">-' + discount + '%</div>' : '') +
+        '</div>' +
+        '<div class="pgrid-info">' +
+          '<div class="pgrid-name">' + p.name + '</div>' +
+          '<div><span class="pgrid-price">₹' + p.price + '</span><span class="pgrid-mrp">₹' + p.mrp + '</span></div>' +
+          '<div class="pgrid-moq">MOQ: ' + p.moq + ' pcs</div>' +
+        '</div>';
+      card.onclick = () => { addMsg(p.name, 'user'); setChips([]); showProduct(p); };
+      grid.appendChild(card);
+    });
+    chatArea.appendChild(grid);
+    const nav = document.createElement('div');
+    nav.className = 'pgrid-nav';
+    const homeBtn = document.createElement('button');
+    homeBtn.className = 'pgrid-nav-btn';
+    homeBtn.textContent = '🏠 Main Menu';
+    homeBtn.onclick = () => { addMsg('Main Menu', 'user'); goHome(); };
+    nav.appendChild(homeBtn);
+    chatArea.appendChild(nav);
+    chatArea.scrollTop = chatArea.scrollHeight;
+    setChips([]);
+  });
+}
+
+function showHowTo(){
+  botReply(
+    '📋 *How to Place an Order*\n\n' +
+    '1️⃣ Browse or search a product\n' +
+    '2️⃣ Tap "Add to Cart"\n' +
+    '3️⃣ Select quantity\n' +
+    '4️⃣ Tap "Place Order"\n' +
+    '5️⃣ Pay via UPI: *9843048820-1@okbizaxis*\n' +
+    '6️⃣ Take a screenshot of the payment\n' +
+    '7️⃣ Fill your Name, Phone & Address\n' +
+    '8️⃣ Upload the screenshot\n' +
+    '9️⃣ Tap "Confirm Order"\n\n' +
+    '✅ Done! We will WhatsApp you the delivery charges.\n\n' +
+    '🚚 Tamil Nadu delivery only\n' +
+    '📦 Bulk carton packing only\n' +
+    '⚠ No returns or exchanges',
+    [
+      {label:'🛍 Browse Products', action:'home'},
+      {label:'📞 Contact Us', action:'contact'},
+    ]
+  );
+}
+
+function showContact(){
+  botReply(
+    '📞 *Shri Mala Traders*\n\n' +
+    '📍 88, West Avani Moola Street,\n   Opp. Radha Transport,\n   Madurai – 625 001\n\n' +
+    '📱 9843048820\n' +
+    '📧 shrimalatraders@gmail.com\n\n' +
+    '⏰ Monday – Saturday: 9 AM – 7 PM',
+    [
+      {label:'🛍 Browse Products', action:'home'},
+      {label:'📋 How to Order', action:'howto'},
+    ]
+  );
+}
+
+function updateCartBar(){
+  const bar = document.getElementById('cartBar');
+  const txt = document.getElementById('cartBarText');
+  if(cart.length === 0){ bar.style.display = 'none'; return; }
+  const total = cart.reduce((s,i) => s + (i.price * i.qty), 0);
+  const pcs = cart.reduce((s,i) => s + i.qty, 0);
+  txt.textContent = '🛒 ' + cart.length + ' product(s) · ' + pcs + ' pcs · ₹' + total;
+  bar.style.display = 'flex';
+}
+
+// ── TEXT INPUT ──
+function sendText(){
+  const inp = document.getElementById('txtInput');
+  const val = inp.value.trim();
+  if(!val) return;
+  addMsg(val, 'user');
+  inp.value = '';
+  setChips([]);
+
+  if(botState === 'qty' && window_pendingProduct){
+    const n = parseInt(val);
+    const p = window_pendingProduct;
+    if(!isNaN(n) && n >= p.moq && n % p.moq === 0){
+      window_pendingProduct = null;
+      handleQty(p, n);
+    } else {
+      botReply('⚠ Please enter a multiple of ' + p.moq + ' (minimum ' + p.moq + ' pcs).', [
+        {label: p.moq + ' pcs', action:'qty', pid:p, qty:p.moq},
+        {label: (p.moq*2) + ' pcs', action:'qty', pid:p, qty:p.moq*2},
+      ]);
+    }
+    return;
+  }
+
+  const vl = val.toLowerCase();
+  if(vl==='hi'||vl==='hello'||vl==='hey'){ goHome(); return; }
+
+  // Image request detection
+  const imageWords = ['image','photo','pic','picture','photo','img','பட','படம்','show image','product image'];
+  if(imageWords.some(w => vl.includes(w))){
+    const p = currentProduct || window_pendingProduct;
+    if(p){
+      const productLink = 'https://shrimalatraders.github.io/shrimalatraders/?product=' + p.id;
+      window.open(productLink, '_blank');
+    } else {
+      botReply('Please select a product first to view its images 😊', [
+        {label:'🍽️ Trays', action:'cat', val:'Tray'},
+        {label:'🥘 Plates', action:'cat', val:'Plates'},
+        {label:'🥃 Glassware', action:'cat', val:'Glassware'},
+      ]);
+    }
+    return;
+  }
+
+  doSearch(val);
+}
+
+document.getElementById('txtInput').addEventListener('keydown', e => { if(e.key==='Enter') sendText(); });
+
+// ── ORDER SHEET ──
+function openOrder(){
+  if(cart.length === 0){
+    botReply('Your cart is empty. Please add a product first.', [{label:'🛍 Browse Products', action:'home'}]);
+    return;
+  }
+  renderCartReview();
+  document.getElementById('orderOverlay').classList.add('open');
+}
+function closeOrder(){ document.getElementById('orderOverlay').classList.remove('open'); }
+
+function renderCartReview(){
+  const div = document.getElementById('cartReview');
+  div.innerHTML = '';
+  cart.forEach((item, i) => {
+    const row = document.createElement('div');
+    row.className = 'cart-item-row';
+    row.innerHTML =
+      '<div style="flex:1"><b>' + item.name + '</b><br><span style="color:#8a7055;font-size:12px">' + item.qty + ' pcs × ₹' + item.price + '</span></div>' +
+      '<div style="font-weight:700;margin:0 10px">₹' + (item.price * item.qty) + '</div>' +
+      '<button class="remove-btn" onclick="removeCart(' + i + ')">🗑</button>';
+    div.appendChild(row);
+  });
+  const total = cart.reduce((s,i) => s + (i.price * i.qty), 0);
+  document.getElementById('orderTotal').textContent = 'Grand Total: ₹' + total + ' (+ delivery charges)';
+}
+
+function removeCart(i){
+  cart.splice(i, 1);
+  updateCartBar();
+  if(cart.length === 0){ closeOrder(); return; }
+  renderCartReview();
+}
+
+function copyUPI(){
+  navigator.clipboard.writeText(UPI)
+    .then(() => showToast('✅ UPI ID copied!'))
+    .catch(() => prompt('Copy this UPI ID:', UPI));
+}
+
+function handleScreenshot(inp){
+  const file = inp.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    screenshotB64 = e.target.result;
+    document.getElementById('uploadArea').classList.add('has-file');
+    document.getElementById('uploadArea').classList.remove('error');
+    document.getElementById('uploadText').textContent = '✅ Screenshot uploaded: ' + file.name;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── CONFIRM ORDER with toast validation ──
+async function confirmOrder(){
+  const name  = document.getElementById('f_name').value.trim();
+  const phone = document.getElementById('f_phone').value.trim();
+  const alt   = document.getElementById('f_alt').value.trim();
+  const addr  = document.getElementById('f_addr').value.trim();
+  const pin   = document.getElementById('f_pin').value.trim();
+
+  // Clear previous errors
+  ['f_name','f_phone','f_addr','f_pin'].forEach(id => document.getElementById(id).classList.remove('error'));
+  document.getElementById('uploadArea').classList.remove('error');
+
+  // Validate — show toast for EACH missing field, highlight it, stop at first error
+  if(!name){
+    showToast('⚠ Please enter your Full Name', 'f_name');
+    return;
+  }
+  if(!phone || phone.replace(/\D/g,'').length < 10){
+    showToast('⚠ Please enter a valid 10-digit Phone Number', 'f_phone');
+    return;
+  }
+  if(!addr){
+    showToast('⚠ Please enter your Delivery Address', 'f_addr');
+    return;
+  }
+  if(!pin || pin.replace(/\D/g,'').length < 6){
+    showToast('⚠ Please enter a valid 6-digit Pincode', 'f_pin');
+    return;
+  }
+  if(!screenshotB64){
+    showToast('⚠ Please upload your Payment Screenshot');
+    document.getElementById('uploadArea').classList.add('error');
+    document.getElementById('uploadArea').scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
+
+  const total = cart.reduce((s,i) => s + (i.price * i.qty), 0);
+  const orderNo = 'SMT-' + Date.now().toString().slice(-6);
+  const itemsText = cart.map(i => i.name + ' x ' + i.qty + ' pcs = Rs.' + (i.price * i.qty)).join('\n');
+
+  // Try EmailJS if configured
+  try {
+    if(EMAILJS_PUBLIC !== 'YOUR_EMAILJS_PUBLIC_KEY'){
+      await emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, {
+        to_email: ADMIN_EMAIL,
+        order_no: orderNo,
+        customer_name: name,
+        customer_phone: phone + (alt ? ' / ' + alt : ''),
+        customer_address: addr + ', ' + pin,
+        items: itemsText,
+        total: 'Rs.' + total,
+        screenshot: screenshotB64,
+      });
+    }
+  } catch(e){ console.warn('EmailJS error:', e); }
+
+  // WhatsApp message (full English)
+  let wa = '🛒 *New Order – Shri Mala Traders*%0A';
+  wa += '━━━━━━━━━━━━━━━━%0A';
+  wa += '🧾 *Order No:* %23' + orderNo + '%0A';
+  wa += '👤 *Name:* ' + encodeURIComponent(name) + '%0A';
+  wa += '📞 *Phone:* ' + phone + (alt ? ' / ' + alt : '') + '%0A';
+  wa += '📍 *Address:* ' + encodeURIComponent(addr) + ', ' + pin + '%0A';
+  wa += '━━━━━━━━━━━━━━━━%0A';
+  wa += '📦 *Items Ordered:*%0A';
+  cart.forEach(i => { wa += '• ' + encodeURIComponent(i.name) + ' x ' + i.qty + ' pcs = Rs.' + (i.price * i.qty) + '%0A'; });
+  wa += '━━━━━━━━━━━━━━━━%0A';
+  wa += '💰 *Grand Total: Rs.' + total + '*%0A';
+  wa += '(Delivery charges to be updated separately)%0A';
+  wa += '💳 *UPI:* ' + UPI + '%0A';
+  wa += '📸 Payment screenshot sent separately%0A';
+  wa += '━━━━━━━━━━━━━━━━%0A';
+  wa += '🙏 Thank you for your order!';
+
+  setTimeout(() => {
+    window.open('https://wa.me/919843048820?text=' + wa, '_blank');
+  }, 400);
+
+  closeOrder();
+  cart = [];
+  screenshotB64 = '';
+  updateCartBar();
+
+  // Reset form
+  ['f_name','f_phone','f_alt','f_addr','f_pin'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  document.getElementById('uploadArea').classList.remove('has-file','error');
+  document.getElementById('uploadText').textContent = 'Upload Payment Screenshot *';
+  document.getElementById('ssInput').value = '';
+
+  document.getElementById('successMsg').textContent =
+    'Order #' + orderNo + ' received! 🎉\n\nWe will send you the delivery charges via WhatsApp shortly. Thank you for shopping with Shri Mala Traders!';
+  document.getElementById('successOverlay').classList.add('open');
+}
+
+function closeSuccess(){
+  document.getElementById('successOverlay').classList.remove('open');
+  goHome();
+}
+
+// ── PRODUCT DETAIL MODAL ──
+function openPdetail(p){
+  const {emoji, color, accent, label} = getProductEmoji(p);
+  const discount = Math.round(((p.mrp - p.price) / p.mrp) * 100);
+  const minVal = (p.price * p.moq).toFixed(0);
+
+  document.getElementById('pdetailHero').style.background = color;
+  document.getElementById('pdetailHero').style.borderBottom = '2px solid ' + accent + '40';
+  document.getElementById('pdetailEmoji').textContent = emoji;
+  document.getElementById('pdetailBadge').textContent = label;
+  document.getElementById('pdetailBadge').style.background = accent;
+  document.getElementById('pdetailDiscount').textContent = discount > 0 ? '-' + discount + '% OFF' : '';
+  document.getElementById('pdetailDiscount').style.display = discount > 0 ? 'block' : 'none';
+  document.getElementById('pdetailCat').textContent = p.cat;
+  document.getElementById('pdetailCat').style.color = accent;
+  document.getElementById('pdetailName').textContent = p.name;
+  document.getElementById('pdetailPrice').textContent = '₹' + p.price + ' /pc';
+  document.getElementById('pdetailPrice').style.color = accent;
+  document.getElementById('pdetailMrp').textContent = '₹' + p.mrp;
+  document.getElementById('pdetailOff').textContent = discount > 0 ? discount + '% off' : '';
+  document.getElementById('pdetailOff').style.display = discount > 0 ? 'inline-block' : 'none';
+  document.getElementById('pdetailMoq').textContent = p.moq + ' pcs minimum';
+  document.getElementById('pdetailMinVal').textContent = '₹' + minVal;
+  if(p.code){
+    document.getElementById('pdetailCode').textContent = p.code;
+    document.getElementById('pdetailCodeRow').style.display = 'flex';
+  } else {
+    document.getElementById('pdetailCodeRow').style.display = 'none';
+  }
+  document.getElementById('pdetailStock').textContent = p.stock || 'In Stock';
+  document.getElementById('pdetailAddBtn').onclick = () => { closePdetail(); addMsg(p.name, 'user'); setChips([]); addToCart(p); };
+  document.getElementById('pdetailOverlay').classList.add('open');
+}
+function closePdetail(){
+  document.getElementById('pdetailOverlay').classList.remove('open');
+}
+
+// INIT
+goHome();
+</script>
+</body>
+</html>
